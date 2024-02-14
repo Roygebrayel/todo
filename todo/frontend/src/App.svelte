@@ -1,79 +1,52 @@
+<!-- frontend/src/TodoApp.svelte -->
 <script>
-  import logo from './assets/images/logo-universal.png'
-  import {Greet} from '../wailsjs/go/main/App.js'
+  import { createEventDispatcher } from 'svelte';
 
-  let resultText = "Please enter your name below 👇"
-  let name
+  let tasks = [];
+  let newTask = '';
+  const dispatcher = createEventDispatcher();
 
-  function greet() {
-    Greet(name).then(result => resultText = result)
+  function addTask() {
+    if (newTask.trim() !== '') {
+      tasks = [...tasks, { id: tasks.length + 1, text: newTask.trim(), completed: false }];
+      newTask = '';
+    }
+  }
+
+  function toggleTaskStatus(taskId) {
+    tasks = tasks.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          completed: !task.completed
+        };
+      }
+      return task;
+    });
+  }
+
+  function deleteTask(taskId) {
+    tasks = tasks.filter(task => task.id !== taskId);
   }
 </script>
 
-<main>
-  <img alt="Wails logo" id="logo" src="{logo}">
-  <div class="result" id="result">{resultText}</div>
-  <div class="input-box" id="input">
-    <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
-    <button class="btn" on:click={greet}>Greet</button>
-  </div>
-</main>
+<div>
+  <h1>Todo App</h1>
 
-<style>
+  <!-- Input field for adding new tasks -->
+  <input type="text" placeholder="Add new task" bind:value={newTask} />
+  <button on:click={addTask}>Add Task</button>
 
-  #logo {
-    display: block;
-    width: 50%;
-    height: 50%;
-    margin: auto;
-    padding: 10% 0 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-origin: content-box;
-  }
-
-  .result {
-    height: 20px;
-    line-height: 20px;
-    margin: 1.5rem auto;
-  }
-
-  .input-box .btn {
-    width: 60px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 3px;
-    border: none;
-    margin: 0 0 0 20px;
-    padding: 0 8px;
-    cursor: pointer;
-  }
-
-  .input-box .btn:hover {
-    background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
-    color: #333333;
-  }
-
-  .input-box .input {
-    border: none;
-    border-radius: 3px;
-    outline: none;
-    height: 30px;
-    line-height: 30px;
-    padding: 0 10px;
-    background-color: rgba(240, 240, 240, 1);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .input-box .input:hover {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-  .input-box .input:focus {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-</style>
+  <!-- List of tasks -->
+  <ul>
+    {#each tasks as task (task.id)}
+      <li 
+        class:selected={task.completed} 
+        on:click={() => toggleTaskStatus(task.id)}
+      >
+        {task.text}
+        <button on:click={(event) => {event.stopPropagation(); deleteTask(task.id);}}>Delete</button>
+      </li>
+    {/each}
+  </ul>
+</div>
